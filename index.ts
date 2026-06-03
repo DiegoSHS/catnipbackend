@@ -2,6 +2,7 @@ import { connectMongo } from "./src/mongodb"
 import profiles, { type ProfileInput, type ProfileUpdateInput } from "./src/profiles"
 import socials, { type SocialInput, type SocialUpdateInput } from "./src/socials"
 import sections, { type SectionInput, type SectionUpdateInput } from "./src/sections"
+import creations, { type CreationInput, type CreationUpdateInput } from "./src/creations"
 
 await connectMongo()
 
@@ -99,6 +100,42 @@ Bun.serve({
         "/profile/:id/section/:sectionId/image": {
             GET: async (req) => {
                 const imageResponse = await sections.getSectionImage(req.params.id, req.params.sectionId)
+                if (!imageResponse) return new Response(null, { status: 404 })
+                return new Response(imageResponse.image, {
+                    status: 200,
+                    headers: { "Content-Type": imageResponse.mimeType },
+                })
+            },
+        },
+        "/profile/:id/creation": {
+            GET: async (req) => {
+                const creationList = await creations.getCreationsForProfile(req.params.id)
+                return Response.json(creationList)
+            },
+            POST: async (req) => {
+                const body = await req.json() as CreationInput
+                const creation = await creations.createCreation(req.params.id, body)
+                return Response.json(creation, { status: 201 })
+            },
+        },
+        "/profile/:id/creation/:creationId": {
+            GET: async (req) => {
+                const creation = await creations.getCreationById(req.params.id, req.params.creationId)
+                return creation ? Response.json(creation) : new Response(null, { status: 404 })
+            },
+            PUT: async (req) => {
+                const body = await req.json() as CreationUpdateInput
+                const creation = await creations.updateCreation(req.params.id, req.params.creationId, body)
+                return creation ? Response.json(creation) : new Response(null, { status: 404 })
+            },
+            DELETE: async (req) => {
+                const deleted = await creations.deleteCreation(req.params.id, req.params.creationId)
+                return new Response(null, { status: deleted ? 204 : 404 })
+            },
+        },
+        "/profile/:id/creation/:creationId/image": {
+            GET: async (req) => {
+                const imageResponse = await creations.getCreationImage(req.params.id, req.params.creationId)
                 if (!imageResponse) return new Response(null, { status: 404 })
                 return new Response(imageResponse.image, {
                     status: 200,
