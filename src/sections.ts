@@ -5,6 +5,7 @@ type SectionType = "WARNING" | "NOTE" | "DEFAULT"
 
 type SectionSchema = {
     _id?: ObjectId
+    profileId: ObjectId
     type: SectionType
     size: string
     title: string
@@ -34,6 +35,7 @@ function decodeBase64Image(value: string): Uint8Array {
 function serializeSection(section: SectionSchema & { _id: ObjectId }) {
     return {
         id: section._id.toString(),
+        profileId: section.profileId.toString(),
         type: section.type,
         size: section.size,
         title: section.title,
@@ -45,21 +47,29 @@ function serializeSection(section: SectionSchema & { _id: ObjectId }) {
     }
 }
 
-export async function getSections() {
+export async function getSectionsForProfile(profileId: string) {
     const collection = await getCollection<SectionSchema>("section")
-    const sections = await collection.find().toArray()
+    const sections = await collection
+        .find({ profileId: new ObjectId(profileId) })
+        .toArray()
     return sections.map((section) => serializeSection(section as SectionSchema & { _id: ObjectId }))
 }
 
-export async function getSectionById(id: string) {
+export async function getSectionById(profileId: string, id: string) {
     const collection = await getCollection<SectionSchema>("section")
-    const section = await collection.findOne({ _id: new ObjectId(id) })
+    const section = await collection.findOne({
+        _id: new ObjectId(id),
+        profileId: new ObjectId(profileId),
+    })
     return section ? serializeSection(section as SectionSchema & { _id: ObjectId }) : null
 }
 
-export async function getSectionImage(id: string) {
+export async function getSectionImage(profileId: string, id: string) {
     const collection = await getCollection<SectionSchema>("section")
-    const section = await collection.findOne({ _id: new ObjectId(id) })
+    const section = await collection.findOne({
+        _id: new ObjectId(id),
+        profileId: new ObjectId(profileId),
+    })
     if (!section) return null
     return {
         image: new Uint8Array(section.image.buffer),
@@ -67,12 +77,13 @@ export async function getSectionImage(id: string) {
     }
 }
 
-export async function createSection(data: SectionInput) {
+export async function createSection(profileId: string, data: SectionInput) {
     const collection = await getCollection<SectionSchema>("section")
     const imageData = decodeBase64Image(data.image)
     const now = new Date()
 
     const result = await collection.insertOne({
+        profileId: new ObjectId(profileId),
         type: data.type,
         size: data.size,
         title: data.title,
@@ -83,10 +94,10 @@ export async function createSection(data: SectionInput) {
         updatedAt: now,
     })
 
-    return getSectionById(result.insertedId.toString())
+    return getSectionById(profileId, result.insertedId.toString())
 }
 
-export async function updateSection(id: string, data: SectionUpdateInput) {
+export async function updateSection(profileId: string, id: string, data: SectionUpdateInput) {
     const collection = await getCollection<SectionSchema>("section")
     const update: Partial<SectionSchema> = {
         updatedAt: new Date(),
@@ -99,18 +110,24 @@ export async function updateSection(id: string, data: SectionUpdateInput) {
     if (typeof data.image === "string") update.image = new Binary(decodeBase64Image(data.image))
     if (typeof data.imageMimeType === "string") update.imageMimeType = data.imageMimeType
 
-    await collection.updateOne({ _id: new ObjectId(id) }, { $set: update })
-    return getSectionById(id)
+    await collection.updateOne(
+        { _id: new ObjectId(id), profileId: new ObjectId(profileId) },
+        { $set: update },
+    )
+    return getSectionById(profileId, id)
 }
 
-export async function deleteSection(id: string) {
+export async function deleteSection(profileId: string, id: string) {
     const collection = await getCollection<SectionSchema>("section")
-    const result = await collection.deleteOne({ _id: new ObjectId(id) })
+    const result = await collection.deleteOne({
+        _id: new ObjectId(id),
+        profileId: new ObjectId(profileId),
+    })
     return result.deletedCount === 1
 }
 
 export default {
-    getSections,
+    getSectionsForProfile,
     getSectionById,
     getSectionImage,
     createSection,

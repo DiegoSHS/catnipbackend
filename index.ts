@@ -70,35 +70,35 @@ Bun.serve({
                 return new Response(null, { status: deleted ? 204 : 404 })
             },
         },
-        "/section": {
-            GET: async () => {
-                const sectionList = await sections.getSections()
+        "/profile/:id/section": {
+            GET: async (req) => {
+                const sectionList = await sections.getSectionsForProfile(req.params.id)
                 return Response.json(sectionList)
             },
             POST: async (req) => {
                 const body = await req.json() as SectionInput
-                const section = await sections.createSection(body)
+                const section = await sections.createSection(req.params.id, body)
                 return Response.json(section, { status: 201 })
             },
         },
-        "/section/:sectionId": {
+        "/profile/:id/section/:sectionId": {
             GET: async (req) => {
-                const section = await sections.getSectionById(req.params.sectionId)
+                const section = await sections.getSectionById(req.params.id, req.params.sectionId)
                 return section ? Response.json(section) : new Response(null, { status: 404 })
             },
             PUT: async (req) => {
                 const body = await req.json() as SectionUpdateInput
-                const section = await sections.updateSection(req.params.sectionId, body)
+                const section = await sections.updateSection(req.params.id, req.params.sectionId, body)
                 return section ? Response.json(section) : new Response(null, { status: 404 })
             },
             DELETE: async (req) => {
-                const deleted = await sections.deleteSection(req.params.sectionId)
+                const deleted = await sections.deleteSection(req.params.id, req.params.sectionId)
                 return new Response(null, { status: deleted ? 204 : 404 })
             },
         },
-        "/section/:sectionId/image": {
+        "/profile/:id/section/:sectionId/image": {
             GET: async (req) => {
-                const imageResponse = await sections.getSectionImage(req.params.sectionId)
+                const imageResponse = await sections.getSectionImage(req.params.id, req.params.sectionId)
                 if (!imageResponse) return new Response(null, { status: 404 })
                 return new Response(imageResponse.image, {
                     status: 200,
