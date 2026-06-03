@@ -5,6 +5,7 @@ type ProfileSchema = {
     _id?: ObjectId
     name: string
     description: string
+    footer?: string
     image: Binary
     imageMimeType?: string
     createdAt: Date
@@ -14,6 +15,7 @@ type ProfileSchema = {
 export type ProfileInput = {
     name: string
     description: string
+    footer?: string
     image: string
     imageMimeType?: string
 }
@@ -30,6 +32,7 @@ function serializeProfile(profile: ProfileSchema & { _id: ObjectId }) {
         id: profile._id.toString(),
         name: profile.name,
         description: profile.description,
+        footer: profile.footer ?? null,
         image: profile.image ? Buffer.from(profile.image.buffer).toString("base64") : null,
         imageMimeType: profile.imageMimeType ?? null,
         createdAt: profile.createdAt,
@@ -67,6 +70,7 @@ export async function createProfile(data: ProfileInput) {
     const result = await collection.insertOne({
         name: data.name,
         description: data.description,
+        footer: data.footer,
         image: new Binary(imageData),
         imageMimeType: data.imageMimeType,
         createdAt: now,
@@ -84,6 +88,7 @@ export async function updateProfile(id: string, data: ProfileUpdateInput) {
 
     if (typeof data.name === "string") update.name = data.name
     if (typeof data.description === "string") update.description = data.description
+    if (typeof data.footer === "string") update.footer = data.footer
     if (typeof data.image === "string") update.image = new Binary(decodeBase64Image(data.image))
     if (typeof data.imageMimeType === "string") update.imageMimeType = data.imageMimeType
 
