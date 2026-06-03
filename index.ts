@@ -1,6 +1,7 @@
 import { connectMongo } from "./src/mongodb"
 import profiles, { type ProfileInput, type ProfileUpdateInput } from "./src/profiles"
 import socials, { type SocialInput, type SocialUpdateInput } from "./src/socials"
+import sections, { type SectionInput, type SectionUpdateInput } from "./src/sections"
 
 await connectMongo()
 
@@ -69,10 +70,40 @@ Bun.serve({
                 return new Response(null, { status: deleted ? 204 : 404 })
             },
         },
+        "/section": {
+            GET: async () => {
+                const sectionList = await sections.getSections()
+                return Response.json(sectionList)
+            },
+            POST: async (req) => {
+                const body = await req.json() as SectionInput
+                const section = await sections.createSection(body)
+                return Response.json(section, { status: 201 })
+            },
+        },
         "/section/:sectionId": {
             GET: async (req) => {
-                const { sectionId } = req.params
-                return Response.json({ sectionId, name: "Section Name", description: "Section Description" })
+                const section = await sections.getSectionById(req.params.sectionId)
+                return section ? Response.json(section) : new Response(null, { status: 404 })
+            },
+            PUT: async (req) => {
+                const body = await req.json() as SectionUpdateInput
+                const section = await sections.updateSection(req.params.sectionId, body)
+                return section ? Response.json(section) : new Response(null, { status: 404 })
+            },
+            DELETE: async (req) => {
+                const deleted = await sections.deleteSection(req.params.sectionId)
+                return new Response(null, { status: deleted ? 204 : 404 })
+            },
+        },
+        "/section/:sectionId/image": {
+            GET: async (req) => {
+                const imageResponse = await sections.getSectionImage(req.params.sectionId)
+                if (!imageResponse) return new Response(null, { status: 404 })
+                return new Response(imageResponse.image, {
+                    status: 200,
+                    headers: { "Content-Type": imageResponse.mimeType },
+                })
             },
         },
     },
