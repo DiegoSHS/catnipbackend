@@ -1,0 +1,15 @@
+{
+  "name": "catnipbackend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "mongodb": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
