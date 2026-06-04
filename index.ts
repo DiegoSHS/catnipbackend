@@ -1,7 +1,7 @@
 import { connectMongo } from "./src/mongodb"
-import profiles, { type ProfileInput, type ProfileUpdateInput } from "./src/profiles"
-import socials, { type SocialInput, type SocialUpdateInput } from "./src/socials"
-import sections, { type SectionInput, type SectionUpdateInput } from "./src/sections"
+import profiles, { type ProfileInput, type ProfileUpdateInput } from "./src/profile"
+import socials, { type SocialInput, type SocialUpdateInput } from "./src/social"
+import sections, { type SectionInput, type SectionUpdateInput } from "./src/section"
 import creations, { type CreationInput, type CreationUpdateInput } from "./src/creations"
 
 await connectMongo()

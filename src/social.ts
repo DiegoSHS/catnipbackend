@@ -6,6 +6,7 @@ type SocialSchema = {
     profileId: ObjectId
     name: string
     link: string
+    color: string
     createdAt: Date
     updatedAt: Date
 }
@@ -13,6 +14,7 @@ type SocialSchema = {
 export type SocialInput = {
     name: string
     link: string
+    color: string
 }
 
 export type SocialUpdateInput = Partial<SocialInput>
@@ -23,6 +25,7 @@ function serializeSocial(social: SocialSchema & { _id: ObjectId }) {
         profileId: social.profileId.toString(),
         name: social.name,
         link: social.link,
+        color: social.color,
         createdAt: social.createdAt,
         updatedAt: social.updatedAt,
     }
@@ -52,6 +55,7 @@ export async function createSocial(profileId: string, data: SocialInput) {
         profileId: new ObjectId(profileId),
         name: data.name,
         link: data.link,
+        color: data.color,
         createdAt: now,
         updatedAt: now,
     })
@@ -65,7 +69,7 @@ export async function updateSocial(profileId: string, socialId: string, data: So
     }
     if (typeof data.name === "string") update.name = data.name
     if (typeof data.link === "string") update.link = data.link
-
+    if (typeof data.color === "string") update.color = data.color
     await collection.updateOne(
         { _id: new ObjectId(socialId), profileId: new ObjectId(profileId) },
         { $set: update },
